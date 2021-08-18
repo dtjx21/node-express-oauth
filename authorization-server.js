@@ -53,6 +53,27 @@ app.use(bodyParser.urlencoded({ extended: true }))
 /*
 Your code here
 */
+app.get("/authorize", (req, res) => {
+	// gets client ID from req object
+	const client_ident = req.query.client_id
+	// gets client object from clients array
+	const client = clients[client_ident]
+
+	if(!client){
+		res.send(401);
+		return;
+	} else {
+		//returns array of strings that are the permissions
+		scopes = req.query.scope.split(" ")
+			if(! containsAll(client.scopes, scopes)){
+				res.send(401);
+				return;
+			}
+		res.send(200);
+		return;
+	}
+
+})
 
 const server = app.listen(config.port, "localhost", function () {
 	var host = server.address().address
