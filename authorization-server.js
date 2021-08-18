@@ -110,6 +110,46 @@ app.post("/approve", (req, res) => {
 
 });
 
+app.post("/token", (req, res) => {
+	let authCredentials = req.headers.authorization
+	//
+	if (!authCredentials) {
+		res.status(401).send()
+		return
+	}
+
+	const { clientId, clientSecret } = decodeAuthCredentials(authCredentials)
+	const client = clients[clientId]
+	if (!client || client.clientSecret !== clientSecret) {
+		res.status(401).send("Error: client not authorized")
+		return
+	}
+	const code = req.body.code
+	if (!code || !authorizationCodes[code]) {
+		res.status(401).send()
+		return
+	}
+	const { clientReq, userName } = authorizationCodes[code]
+	delete authorizationCodes[code]
+	const token = jwt.sign(
+		{
+			userName,
+			scope: clientReq.scope,
+		},
+		config.privateKey,
+		{
+			algorithm: "RS256",
+			expiresIn: 300,
+			issuer: "http://localhost:" + config.port,
+		}
+	)
+	res.json({
+		access_token: token,
+		token_type: "Bearer",
+		scope: clientReq.scope,
+	})
+})
+
 const server = app.listen(config.port, "localhost", function () {
 	var host = server.address().address
 	var port = server.address().port
