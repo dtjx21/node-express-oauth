@@ -1,3 +1,4 @@
+const url = require("url")
 const fs = require("fs")
 const express = require("express")
 const bodyParser = require("body-parser")
@@ -83,8 +84,31 @@ app.get("/authorize", (req, res) => {
 })
 
 app.post("/approve", (req, res) => {
-	
-})
+	// get strings from request body
+	const userName = req.body.userName;
+	const password = req.body.password;
+	const requestId = req.body.requestId;
+	const clientReq = requests[requestId]
+
+	if ((!userName || users[userName] !== password) || !requests[requestId]) {
+		res.status(401).send("Error: user not authorized")
+		return
+	} else {
+		delete(requests[requestId]);
+		code = randomString()
+
+		authorizationCodes[code] = {clientReq, userName}
+
+		const redirectUri = url.parse(clientReq.redirect_uri)
+	redirectUri.query = {
+		code,
+		state: clientReq.state,
+	}
+	res.redirect(url.format(redirectUri))
+	}
+
+
+});
 
 const server = app.listen(config.port, "localhost", function () {
 	var host = server.address().address
