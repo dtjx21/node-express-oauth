@@ -69,10 +69,21 @@ app.get("/authorize", (req, res) => {
 				res.send(401);
 				return;
 			}
-		res.send(200);
-		return;
+
+			const req_id = randomString()
+			requests[req_id] = req.query
+			
+			res.render("login", {
+				client: client,
+				scope: req.query.scope,
+				requestId : req_id
+			})
 	}
 
+})
+
+app.post("/approve", (req, res) => {
+	
 })
 
 const server = app.listen(config.port, "localhost", function () {
